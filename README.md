@@ -148,7 +148,7 @@ is not the recommended package source for this legacy environment.
 
 ## 3. Configure an observation
 
-Edit **`configs/simulation_l6.yaml`** inside `sim_heeps_pipe/`. Start by setting
+Edit **`configs/simulation_L.yaml`** inside `sim_heeps_pipe/`. Start by setting
 the optical input paths, OPD units, cadence, band and matching mask. This file
 contains both the `heeps` and `scopesim` sections for the complete run.
 
