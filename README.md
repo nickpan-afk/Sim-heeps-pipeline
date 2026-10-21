@@ -240,13 +240,13 @@ conda activate heeps-sim
 cd /path/to/Sim-heeps-pipeline/sim_heeps_pipe
 
 # Validate the complete execution plan; no downloads or simulation.
-python simulation_e2e.py --config configs/simulation_l6.yaml --dry-run
+python simulation_e2e.py --config configs/simulation_L.yaml --dry-run
 
 # First test: one science plane and an optional calibrator plane.
-python simulation_e2e.py --config configs/simulation_l6.yaml --preview
+python simulation_e2e.py --config configs/simulation_L.yaml --preview
 
 # Production: all configured detector planes and magnitudes.
-python simulation_e2e.py --config configs/simulation_l6.yaml --full
+python simulation_e2e.py --config configs/simulation_L.yaml --full
 ```
 
 Replace `/path/to/Sim-heeps-pipeline` with your checkout location. If you already
