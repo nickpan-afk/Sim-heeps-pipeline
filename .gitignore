@@ -86,3 +86,10 @@ target/
 
 #Visual Studio Code
 .vscode/
+
+# Simulation data and generated outputs
+/sim_heeps_pipe/outputs/
+/sim_heeps_pipe/inst_pkgs/
+/sim_heeps_pipe/inputs/**
+!/sim_heeps_pipe/inputs/**/
+!/sim_heeps_pipe/inputs/**/.gitkeep
