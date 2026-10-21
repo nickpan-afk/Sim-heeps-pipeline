@@ -71,7 +71,7 @@ scopesim:
   filter_name: Lp
   cold_stop_transmission: 0.07511
   flux_scale: 1.0
-  seed: 20261021
+  seed: null
   companion_mag: null
   companion_separation_arcsec: 0.07
   companion_pa_deg: -113.0
