@@ -1,0 +1,127 @@
+---
+### Aquarius DETECTOR
+object: detector
+alias: DET
+name: METIS_DET_IMG_N_Aquarius
+description: Aquarius detector for METIS IMG-NQ
+date-modified: 2022-02-21
+changes:
+  - 2021-12-16 (OC) some rearrangements
+  - 2021-12-26 (OC) added DetectorModePropertiesSetter and DET.detector
+  - 2022-02-21 (OC) rename effects
+
+properties:
+  detector: Raytheon Aquarius
+  image_plane_id: 0
+  temperature: -265
+  dit: "!OBS.dit"
+  ndit: "!OBS.ndit"
+  include_prnu: False
+  mindit: 0.008            # seconds, E-REP-NOVA-MET-1191, v2-0
+  full_well: 1.e+6  # electrons, low-capacity mode
+  dark_current: 13         # [e-/s] E-REP-NOVA-MET-1191, v2-0
+  readout_noise: 12
+  gain: 15    # wild guess to make full_well fit into int16
+  layout:
+    file_name: "FPA_metis_img_nq_aquarius_layout.dat"
+  qe_curve:
+    file_name: "QE_detector_Aquarius.dat"
+  linearity:
+    file_name: "FPA_linearity_Aquarius.dat"
+
+effects:
+  - name: detector_array
+    description: METIS detector array list
+    class: DetectorList
+    kwargs:
+      filename: "!DET.layout.file_name"
+
+  - name: detector_readout_parameters
+    description: Readout modes for Aquarius detector
+    class: DetectorModePropertiesSetter
+    kwargs:
+      mode_properties:
+        low_gain:
+          "!DET.mindit":    0.008        # seconds
+          "!DET.full_well": 9.e+6  # electrons
+          "!DET.readout_noise": 1400     # electrons (DCS)
+          "!DET.dark_current":  13       # electrons/second
+        high_gain:
+          "!DET.mindit":    0.008        # seconds
+          "!DET.full_well": 1.e+6  # electrons
+          "!DET.readout_noise": 150      # electrons (DCS)
+          "!DET.dark_current": 13        # electrons/second
+
+  - name: quantum_efficiency
+    description: Quantum efficiency curves for each detector
+    class: QuantumEfficiencyCurve
+    include: false    # QE file does not exist
+    kwargs:
+      filename: "!DET.qe_curve.file_name"
+
+  - name: auto_exposure
+    description: automatic determination of DIT and NDIT
+    class: AutoExposure
+    include: true
+    kwargs:
+      fill_frac: "!OBS.auto_exposure.fill_frac"
+      full_well: "!DET.full_well"
+      dark_current: "!DET.dark_current"
+      mindit: "!DET.mindit"
+
+  - name: exposure_integration
+    description: Summing up sky signal for all DITs and NDITs
+    class: ExposureIntegration
+
+  - name: prnu
+    description: Pixel-to-pixel response non-uniformity
+    class: PixelResponseNonUniformity
+    include: "!DET.include_prnu"
+    kwargs:
+      prnu_std: 0.001
+      prnu_seed: 42
+
+  - name: dark_current
+    description: METIS Aquarius dark current
+    class: DarkCurrent
+    kwargs:
+      value: "!DET.dark_current"
+
+  - name: shot_noise
+    description: apply poisson shot noise to images
+    class: ShotNoise
+
+  - name: detector_linearity
+    description: Linearity characteristics of Aquarius chip
+    class: LinearityCurve
+    kwargs:
+      filename: "!DET.linearity.file_name"
+
+  - name: readout_noise
+    description: Readout noise frames
+    class: BasicReadoutNoise
+    kwargs:
+      noise_std: "!DET.readout_noise"
+      n_channels: 64
+
+  - name: exposure_output
+    description: Return average or sum over NDIT subexposures
+    class: ExposureOutput
+    kwargs:
+      mode: average
+
+  - name: ad_conversion
+    description: Apply gain and convert electron count into integers
+    class: ADConversion
+    kwargs:
+      dtype: float32
+      gain: "!DET.gain"
+
+  - name: chop_nod
+    descriptions: chopping and nodding
+    class: ChopNodCombiner
+    include: false
+    kwargs:
+      chop_offsets: "!OBS.chop_offsets"
+      nod_offsets: "!OBS.nod_offsets"
+      pixel_scale: "!INST.pixel_scale"

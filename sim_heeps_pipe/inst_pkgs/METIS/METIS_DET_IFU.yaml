@@ -1,0 +1,133 @@
+---
+### H2RG DETECTOR
+object: detector
+alias: DET
+name: metis_lms_detector_array
+description: A set of 4 H2RG detectors
+date_modified: 2026-01-22
+changes:
+  - 2021-12-16 (OC) some rearrangements
+  - 2024-10-11 (OC) add ADConversion, gain from B.Serra (2024-10-09)
+  - 2025-06-16 (OC) rename SummedExposure to ExposureIntegration
+  - 2026-01-22 (OC) swap dets 1 and 2 as in the layout
+
+properties:
+  image_plane_id: 0
+  temperature: -233
+  dit: "!OBS.dit"
+  ndit: "!OBS.ndit"
+  mindit: 1.3               # seconds, Roy van Boekel, pers. communication
+  include_prnu: False
+  full_well: 1.e+5   # electrons, E-TNT-MPIA-1004, v1-0
+  gain:
+    1: 2.0            # electrons/ADU, email B.Serra 2024-10-09
+    2: 2.0
+    3: 2.0
+    4: 2.0
+  dark_current: 0.1         # [e-/s]
+  readout_noise: 70         # electrons, AI on RvB: check
+  layout:
+    file_name: "FPA_metis_lms_layout.dat"
+  qe_curve:
+    file_name: "QE_detector_H2RG_METIS.dat"
+  linearity:
+    file_name: "FPA_linearity_HxRG.dat"
+  border:
+    1: [32, 64, 32, 0]
+    2: [32, 0, 32, 64]
+    3: [32, 64, 32, 0]
+    4: [32, 0, 32, 64]
+
+effects:
+  - name: detector_array_list
+    description: METIS LMS detector array list
+    class: DetectorList
+    include: true
+    kwargs:
+      filename: "!DET.layout.file_name"
+
+  - name: quantum_efficiency
+    description: Quantum efficiency curves for each detector
+    class: QuantumEfficiencyCurve
+    kwargs:
+      filename: "!DET.qe_curve.file_name"
+
+  - name: auto_exposure
+    description: automatic determination of DIT and NDIT
+    class: AutoExposure
+    include: True
+    kwargs:
+      fill_frac: "!OBS.auto_exposure.fill_frac"
+      full_well: "!DET.full_well"
+      dark_current: "!DET.dark_current"
+      mindit: "!DET.mindit"
+
+  - name: reference_pixel_mask
+    description: Mask for reference pixels
+    class: ReferencePixelBorder
+    include: True
+    kwargs:
+      border: "!DET.border"
+
+  - name: exposure_integration
+    description: Summing up sky signal for all DITs and NDITs
+    class: ExposureIntegration
+
+  - name: prnu
+    description: Pixel-to-pixel response non-uniformity
+    class: PixelResponseNonUniformity
+    include: "!DET.include_prnu"
+    kwargs:
+      prnu_std: 0.005
+      prnu_seed: 42
+
+  - name: dark_current
+    description: METIS LMS dark current
+    class: DarkCurrent
+    kwargs:
+      value: "!DET.dark_current"
+
+  - name: shot_noise
+    description: apply poisson shot noise to images
+    class: ShotNoise
+
+  - name: detector_linearity
+    description: Linearity characteristics of H2RG chips
+    class: LinearityCurve
+    kwargs:
+      filename: "!DET.linearity.file_name"
+
+  - name: ipc
+    description: Inter-pixel capacitance
+    class: InterPixelCapacitance
+    kwargs:   # values from Kannawadi+2016 (H4RG!)
+      alpha_edge:   0.02
+      alpha_corner: 0.002
+      alpha_aniso:  0.
+
+  - name: readout_noise
+    description: Readout noise frames
+    class: BasicReadoutNoise
+    kwargs:
+      noise_std: "!DET.readout_noise"
+      n_channels: 32
+
+  - name: exposure_output
+    description: Return average or sum over NDIT subexposures
+    class: ExposureOutput
+    kwargs:
+      mode: average
+
+  - name: ad_conversion
+    description: Apply gain and convert electron count into integers
+    class: ADConversion
+    kwargs:
+      dtype: float32
+      gain: "!DET.gain"
+
+  - name: det_ifu_fits_keywords
+    descriptions: FITS keywords specific to IFU detectors
+    class: ExtraFitsKeywords
+    include: True
+    kwargs:
+      filename: headers/FITS_det_ifu_keywords.yaml

@@ -1,0 +1,34 @@
+- ext_type: PrimaryHDU
+  keywords:
+
+    HIERARCH:
+      ESO:
+        DPR:
+          TECH: "!OBS.tech"  # duplicate from FITS_common_keywords.yaml
+        INS:
+          OPTI4:                # LMS beamsplitter pickoff wheel
+            DEVSIM: [true, "Device simulation flag"]
+            ID: ["cfo-lms", "CFO_LMS ID"]
+            NAME: ["     ", "CFO_LMS NAME"]
+            POS: [180, "CFO_LMS position"]
+            POSNAME: ["OUT", "CFO_LMS named position"]
+            STAT: ["Standstill", "CFO_LMS status"]
+
+          OPTI9:                # IMG-LM mask/grism wheel
+            DEVSIM: [true, "Device simulation flag"]
+            ID: ["img-lm-pw", "IMG_LM_PW ID"]
+            NAME: ["    ", "IMG_LM_PW NAME"]
+            POS: [0, "IMG_LM_PW position"]                  # TODO
+            POSNAME: ["!OBS.grism_opti9", "IMG_LM_PW named position"] # TODO
+            STAT: ["Standstill", "IMG_LM_PW status"]
+
+          OPTI12:               # IMG-N mask/grism wheel
+            DEVSIM: [true, "Device simulation flag"]
+            ID: ["img-n-pw", "IMG_N_PW ID"]
+            NAME: ["    ", "IMG_N_PW NAME"]
+            POS: [0, "IMG_N_PW position"]           # TODO
+            POSNAME: ["!OBS.grism_opti12", "IMG_N_PW named position"]
+            STAT: ["Standstill", "IMG_N_PW status"]
+
+          DRS:
+            SLIT: ["#slit_wheel.current_slit!", "Slit name"]

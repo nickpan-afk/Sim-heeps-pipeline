@@ -1,0 +1,101 @@
+---
+### METIS LMS NOMINAL MODE
+object: instrument
+alias: INST
+name: METIS_LMS
+description: base configuration for METIS LMS
+date_modified: 2022-05-12
+changes:
+  - 2022-03-04 (OC) introduce decouple_detector_from_sky_headers
+  - 2022-03-22 (OC) add METISLMSImageSlicer effect
+  - 2022-05-12 (OC) add fp2_platescale
+
+properties:
+  pixel_scale: 0.0082          # arcsec / pixel
+  plate_scale: 0.455555555556  # arcsec / mm
+  fp2_platescale: 0.303        # arcsec / mm
+  decouple_detector_from_sky_headers: True  # needed for spectroscopy
+  filter_file_format: "filters/TC_filter_{}.dat"
+
+effects:
+  - name: metis_lms_surfaces
+    description: list of extra mirrors needed for the SPEC LMS mode
+    class: SurfaceList
+    kwargs:
+      filename: LIST_METIS_mirrors_lms.dat
+
+  - name: lms-pp1
+    description: LMS-PP1 Pupil mask wheel
+    class: FilterWheel
+    kwargs:
+      filter_names:
+        # only filters; pupil masks only in wcu (METIS-3639)
+        - open
+        - closed
+        - ND-2.8
+        - ND-1.4
+      filename_format: "!INST.filter_file_format"
+      current_filter: "!OBS.nd_filter_name"
+      minimum_throughput: 0.
+      outer: 19.9           # E-REP-ATC-MET-1003_3-0
+      outer_unit: "mm"
+
+  - name: lms_efficiency
+    description: grating efficiency of METIS LMS
+    class: MetisLMSEfficiency
+    kwargs:
+      filename: "!OBS.trace_file"
+      wavelen: "!OBS.wavelen"
+
+  - name: lms_image_slicer
+    description: field of view of the image slicer
+    class: MetisLMSImageSlicer
+    kwargs:
+      filename: "!OBS.trace_file"
+      ext_id: "Aperture List"
+
+  - name: psf
+    description: field constant, wavelength dependent PSF for imaging mode
+    class: FieldConstantPSF
+    kwargs:
+      filename: "!OBS.psf_file"
+      psf_name: "!OBS.psf_name"
+      psf_path: "METIS_psfs/"
+      filename_format: "METIS_psfs/PSF_{}.fits"
+      wave_key: "WAVELENG"
+      bkg_width: -1
+      interp_psf: "!SIM.psf.interp_psf"
+      interp_order: "!SIM.psf.interp_order"
+
+  - name: lms_spectral_traces
+    description: list of spectral order trace geometry on the focal plane
+    class: MetisLMSSpectralTraceList
+    kwargs:
+      filename: "!OBS.trace_file"
+      wave_colname: "wavelength"
+      wavelen: "!OBS.wavelen"
+      s_colname: "xi"
+      col_number_start: 1
+      slice_samples: 5    # number of samples along slice width
+
+  - name: lms_fits_keywords
+    description: FITS keywords specific to LMS elements
+    class: ExtraFitsKeywords
+    include: True
+    kwargs:
+      filename: headers/FITS_lms_keywords.yaml
+
+---
+### default simulation parameters needed for a METIS simulation
+object: simulation
+alias: SIM
+name: METIS_simulation_parameters
+description: RC simulation parameters which need to change for a METIS run
+
+properties:
+  spectral:
+    spectral_bin_width: 1.e-5    # microns, defines fov wavelengths
+    spectral_resolution: 200000  # defines skycalc resolution
+  psf:
+    interp_psf: False
+    interp_order: 1
