@@ -171,7 +171,7 @@ def run_pipeline(pipeline, *, progress=print):
     with _lock(pipeline.run_dir):
         manifest_path = pipeline.run_dir / 'manifest.json'
         previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-        attempt = dict(started_utc=datetime.now(timezone.utc).isoformat(), status='running', stage='heeps')
+        attempt = dict(started_utc=datetime.now(timezone.utc).isoformat(), status='running', stage='instrument_packages')
         manifest = dict(schema_version=1, status='running', plan=pipeline.summary,
                         attempts=previous.get('attempts', []) + [attempt], products={})
         effective = dict(name=pipeline.heeps.name, run_mode=pipeline.summary['run_mode'],
@@ -181,6 +181,11 @@ def run_pipeline(pipeline, *, progress=print):
         (pipeline.run_dir / 'config_effective.yaml').write_text(yaml.safe_dump(effective, sort_keys=False))
         _write_json(manifest_path, manifest)
         try:
+            if progress:
+                progress('Preparing ScopeSim instrument packages.')
+            scope_stage.ensure_instrument_packages(pipeline.scopesim, progress=progress)
+            attempt['stage'] = 'heeps'
+            _write_json(manifest_path, manifest)
             if progress:
                 progress('Stage 1/2: HEEPS PSF propagation (valid existing chunks are reused).')
             cube, result = heeps_stage.run_pipeline(
