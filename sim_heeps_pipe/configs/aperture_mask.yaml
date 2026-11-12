@@ -1,0 +1,30 @@
+# Independent aperture-mask generation. All paths are relative to this YAML.
+# name is metadata only; mask_family selects the fixed LM/N scale factor.
+name: LM6c_generated
+mask_family: LM                 # LM: 0.9686; N: 0.9628 (fixed in the script)
+hole_radius_mm: 2.355           # One common radius, NOT diameter; mask-plane mm
+hole_centers_file: ../inputs/calibration/mask_coord/LM6c.txt
+npupil: 1385                    # Optional; default 1385, square FITS dimensions
+output_file: ../inputs/calibration/mask/ls_SPM_LM6c_generated.fits
+
+# Base stop from the existing LM6c notebook setup. Lengths are in primary-plane m,
+# angles in degrees; AP_center/AP_length and dR* are normalized HEEPS parameters.
+base_stop:
+  ngrid: 1024                   # HEEPS increases this internally if below npupil
+  pupil_img_size: 39.9988
+  diam_nominal: 38.542
+  diam_ext: 36.067
+  diam_int: 10.8602932          # 12.68 * 856.49 / 1000
+  seg_width: 1.417
+  spi_angles: [0, 60, 120, 180, 240, 300]
+  spi_width: 0.202
+  AP_angles: [180]
+  AP_width: 0.386
+  AP_center: 1.0
+  AP_length: 2.0
+  dRext: 0.0
+  dRint: 0.0
+  dRspi: 0.0
+  force_sym: false
+  circ_ext: false
+  circ_int: false
