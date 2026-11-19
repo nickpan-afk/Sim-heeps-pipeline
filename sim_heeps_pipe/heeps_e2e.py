@@ -818,10 +818,71 @@ def _spectrum(data):
     return Spectrum.uniform(center, bw, nlam)
 
 
-def load_config(path):
+def combined_config_mappings(data, base, *, run_mode=None, output_dir=None):
+    """Validate the shared envelope without opening inputs or importing backends."""
+    allowed = {'name', 'output_dir', 'run_mode', 'heeps', 'scopesim'}
+    if not isinstance(data, dict):
+        raise ValueError('The YAML document must be a mapping')
+    if set(data) - allowed or allowed - set(data):
+        raise ValueError(f'Invalid pipeline keys; unknown={sorted(set(data)-allowed)}, missing={sorted(allowed-set(data))}')
+    name = data['name']
+    if not isinstance(name, str) or not name or name in {'.', '..'} or Path(name).name != name:
+        raise ValueError('name must be a nonempty single directory name')
+    mode = run_mode or data['run_mode']
+    if mode not in {'preview', 'full'}:
+        raise ValueError('run_mode must be preview or full')
+    root = Path(output_dir).expanduser().resolve() if output_dir is not None else _path(data['output_dir'], Path(base))
+    reserved = {'heeps': {'name', 'output_dir', 'run_mode', 'preview_frames'},
+                'scopesim': {'output_dir', 'run_mode'}}
+    for section in reserved:
+        if not isinstance(data[section], dict):
+            raise ValueError(f'{section} must be a mapping')
+        if set(data[section]) & reserved[section]:
+            raise ValueError(f'{section}: pipeline manages {sorted(set(data[section]) & reserved[section])}')
+    return name, mode, root, dict(data['heeps']), dict(data['scopesim'])
+
+
+def apply_frame_requirements(config, scope_data, mode):
+    """Use identical PSF coverage rules for combined and HEEPS-only execution."""
+    planes = scope_data.get('nplanes', 1)
+    group = scope_data.get('average_group', 1)
+    calibrator = scope_data.get('make_calibrator', True)
+    source = scope_data.get('source_kind', 'star')
+    _positive(planes, 'scopesim.nplanes', integer=True)
+    _positive(group, 'scopesim.average_group', integer=True)
+    if type(calibrator) is not bool:
+        raise ValueError('scopesim.make_calibrator must be boolean')
+    if source not in {'star', 'empty_sky'}:
+        raise ValueError('scopesim.source_kind must be star or empty_sky')
+    minimum = (1 if mode == 'preview' else planes) * group * (2 if calibrator else 1)
+    if source == 'empty_sky':
+        minimum = 1
+    if config.nframes is not None and config.nframes < minimum:
+        raise ValueError(f'HEEPS nframes={config.nframes} is insufficient; ScopeSim needs at least {minimum}')
+    if mode == 'preview' or config.nframes is None:
+        config = replace(config, nframes=minimum)
+    if source != 'empty_sky' and config.nframes % group and scope_data.get('remainder_policy', 'error') == 'error':
+        raise ValueError('HEEPS frame count is not divisible by scopesim.average_group; select remainder_policy: drop explicitly')
+    return config
+
+
+def load_config(path, *, run_mode=None, nframes=None):
     path = Path(path).expanduser().resolve()
     data = yaml.load(path.read_text(), Loader=UniqueKeyLoader)
-    return config_from_mapping(data, path.parent)
+    if isinstance(data, dict) and ('heeps' in data or 'scopesim' in data):
+        name, mode, root, hdata, sdata = combined_config_mappings(data, path.parent, run_mode=run_mode)
+        hdata.update(name=name, output_dir=str(root / 'heeps'), run_mode='full')
+        if nframes is not None:
+            hdata['nframes'] = nframes
+        config = apply_frame_requirements(config_from_mapping(hdata, path.parent), sdata, mode)
+        return replace(config, run_mode=mode, preview_frames=config.nframes if mode == 'preview' else config.preview_frames)
+    config = config_from_mapping(data, path.parent)
+    changes = {}
+    if run_mode is not None:
+        changes['run_mode'] = run_mode
+    if nframes is not None:
+        changes['nframes'] = nframes
+    return replace(config, **changes)
 
 
 def _band_specs(value):
@@ -984,18 +1045,16 @@ def main(argv=None):
     modes.add_argument('--full', action='store_true', help='Force full mode')
     args = parser.parse_args(argv)
     try:
-        config = load_config(args.config)
+        mode = 'preview' if args.preview else 'full' if args.full else None
+        config = load_config(args.config, run_mode=mode, nframes=args.nframes)
         changes = {}
         for option, key in ((args.phase_file, 'phase_files'), (args.amplitude_file, 'amplitude_files')):
             if option is not None:
                 changes[key] = (Source(str(option.expanduser().resolve())),)
         if args.output_dir is not None:
             changes['output_dir'] = args.output_dir.expanduser().resolve()
-        for key in ('nframes', 'cpu_count'):
-            if getattr(args, key) is not None:
-                changes[key] = getattr(args, key)
-        if args.preview or args.full:
-            changes['run_mode'] = 'preview' if args.preview else 'full'
+        if args.cpu_count is not None:
+            changes['cpu_count'] = args.cpu_count
         config = replace(config, **changes)
         _, summary = inspect_inputs(config)
         print('Requested configuration:')

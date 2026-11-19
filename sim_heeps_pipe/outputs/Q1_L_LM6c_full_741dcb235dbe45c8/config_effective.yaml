@@ -1,0 +1,91 @@
+name: Q1_L_LM6c
+run_mode: full
+heeps:
+  name: Q1_L_LM6c
+  pupil_file: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/calibration/pupil/ELT_fullM1_feb2025_noseg.fits
+  mask_file: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/calibration/mask/ls_SPM_LM6c.fits
+  output_dir: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/.work/heeps
+  spectrum:
+    wavelengths_m:
+    - 3.46329e-06
+    - 3.6366450000000002e-06
+    - 3.81e-06
+    - 3.983355e-06
+    - 4.15671e-06
+    weights:
+    - 0.2
+    - 0.2
+    - 0.2
+    - 0.2
+    - 0.2
+  band: L
+  mask_name: LM6c
+  cadence_s: 0.1
+  phase_files:
+  - filename: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/wavefront/cube_Q1_3600_100ms_L.fits
+    global_start: 0
+  amplitude_files:
+  - filename: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/wavefront/L_rep_1.fits
+    global_start: 0
+  phase_unit: m
+  input_root: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/calibration/pupil
+  frame_start: 0
+  nframes: 20
+  chunk_size: 100
+  cpu_count: 1
+  ngrid: 1024
+  hfov_arcsec: 1.1
+  pixel_scale_mas: 5.47
+  pure: false
+  run_mode: full
+  preview_frames: 2
+scopesim:
+  input_cube: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/psf_cube.fits
+  package_dir: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inst_pkgs
+  output_dir: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8
+  download_missing_packages: true
+  package_release: stable
+  source_kind: star
+  mags:
+  - 7.0
+  nplanes: 10
+  average_group: 1
+  dit: 0.1
+  ndit: 1
+  mode: img_lm
+  filter_name: Lp
+  pixel_scale_arcsec: 0.00547
+  cold_stop_transmission: 0.07511
+  flux_scale: 1.0
+  seed: 20261021
+  companion_mag: null
+  companion_separation_arcsec: 0.07
+  companion_pa_deg: -113.0
+  nan_policy: omit
+  remainder_policy: error
+  run_mode: full
+  make_calibrator: true
+  detector_readout_mode: null
+  exposure_output_mode: average
+  show_effects: true
+  effects:
+    psf: false
+    shot_noise: true
+    readout_noise: true
+    dark_current: true
+    detector_linearity: true
+    ipc: true
+    cold_stop: true
+    filter_wheel: true
+    nd_filter_wheel: true
+    skycalc_atmosphere: true
+    telescope_reflection: true
+    common_fore_optics: true
+    img_lm_optics: true
+    quantum_efficiency: true
+    reference_pixel_mask: true
+    ad_conversion: true
+    auto_exposure: true
+    exposure_integration: true
+    exposure_output: true
+    detector_readout_parameters: true

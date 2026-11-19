@@ -2,7 +2,8 @@
 """HEEPS PSF cube -> METIS detector FITS products, configured by YAML.
 
 Standalone simulation entry point extracted from TryScopeL6clean.ipynb.
-No imports from the notebook or project scripts, and no downstream analysis.
+No notebook execution or downstream analysis. Shared-YAML parsing uses the
+adjacent heeps_e2e module without importing the HEEPS propagation backend.
 """
 from __future__ import annotations
 
@@ -150,9 +151,64 @@ def _unique_mapping(loader, node, deep=False):
 UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _unique_mapping)
 
 
-def load_config(path: Path) -> SimulationConfig:
+def psf_pixel_scale(path, fallback=None):
+    """Read a positive, consistent angular pixel scale from an existing PSF FITS."""
+    from astropy import units as u
+    if fallback is not None and (isinstance(fallback, bool) or not isinstance(fallback, Real)
+                                 or not np.isfinite(fallback) or fallback <= 0):
+        raise ValueError('scopesim.pixel_scale_arcsec must be a finite positive number or null')
+    with fits.open(path, memmap=True) as hdul:
+        header = hdul[0].header
+    scales = []
+    if 'PSCALE' in header:
+        scales.append(float(header['PSCALE']) * 1e-3)  # HEEPS PSCALE is mas/pixel.
+    for axis in (1, 2):
+        if f'CDELT{axis}' in header:
+            unit = header.get(f'CUNIT{axis}')
+            if unit:
+                scales.append(abs(float(header[f'CDELT{axis}'])) * u.Unit(unit).to(u.arcsec))
+    if 'PSCALE' not in header and len(scales) < 2:
+        if fallback is None:
+            raise ValueError('PSF FITS requires PSCALE (mas/pixel) or CDELT1/2 with angular CUNIT1/2; '
+                             'otherwise set scopesim.pixel_scale_arcsec in YAML')
+        scales.insert(0, float(fallback))
+    if not scales or any(not np.isfinite(value) or value <= 0 for value in scales):
+        raise ValueError('PSF pixel scale must be finite and positive')
+    if not np.allclose(scales, scales[0], rtol=1e-9, atol=0):
+        raise ValueError('PSF FITS contains inconsistent or nonsquare pixel scales')
+    return scales[0]
+
+
+def load_config(path: Path, *, input_cube=None, run_mode=None) -> SimulationConfig:
     path = Path(path).expanduser().resolve()
     data = yaml.load(path.read_text(), Loader=UniqueKeyLoader)
+    if isinstance(data, dict) and ('heeps' in data or 'scopesim' in data):
+        if __package__:
+            from .heeps_e2e import combined_config_mappings
+        else:
+            from heeps_e2e import combined_config_mappings
+        name, mode, root, _, sdata = combined_config_mappings(data, path.parent, run_mode=run_mode)
+        if input_cube is None:
+            configured_cube = sdata.get('input_cube')
+            if configured_cube is None:
+                raise ValueError('ScopeSim only: set scopesim.input_cube in YAML or provide --input /path/to/psf_cube.fits')
+            if not isinstance(configured_cube, str) or not configured_cube.strip():
+                raise ValueError('scopesim.input_cube must be a nonempty path string or null')
+            cube = (path.parent / Path(configured_cube).expanduser()).resolve()
+        else:
+            cube = Path(input_cube).expanduser().resolve()
+        sdata.update(input_cube=str(cube), output_dir=str(root / 'scopesim' / name),
+                     run_mode=mode, pixel_scale_arcsec=psf_pixel_scale(cube, sdata.get('pixel_scale_arcsec')))
+        config = config_from_mapping(sdata, path.parent)
+        if config.effects.get('psf'):
+            raise ValueError('scopesim.effects.psf must be false: the input cube supplies the PSF')
+        return config
+    if isinstance(data, dict):
+        data = dict(data)
+        if input_cube is not None:
+            data['input_cube'] = str(Path(input_cube).expanduser().resolve())
+        if run_mode is not None:
+            data['run_mode'] = run_mode
     return config_from_mapping(data, path.parent)
 
 
@@ -556,12 +612,16 @@ def main(argv=None):
     parser.add_argument("--output-dir", type=Path, help="Override output directory (relative to the current working directory)")
     parser.add_argument("--nplanes", type=int, help="Override configured plane count (preview still limits it to 1)")
     parser.add_argument("--seed", type=int, help="Override root random seed")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--preview", action="store_true", help="One plane and first magnitude")
+    modes.add_argument("--full", action="store_true", help="All configured planes and magnitudes")
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument("--dry-run", action="store_true", help="Validate configuration and input geometry; do not build an instrument or simulate")
     actions.add_argument("--inspect-effects", action="store_true", help="Build and print the configured instrument effects, then exit without simulating")
     args = parser.parse_args(argv)
     try:
-        config = load_config(args.config)
+        mode = 'preview' if args.preview else 'full' if args.full else None
+        config = load_config(args.config, input_cube=args.input, run_mode=mode)
         changes = {}
         for option, name in ((args.input, "input_cube"), (args.output_dir, "output_dir")):
             if option is not None:

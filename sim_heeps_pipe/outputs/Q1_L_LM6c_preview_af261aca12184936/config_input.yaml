@@ -1,0 +1,103 @@
+# OPD/amplitude -> HEEPS PSFs -> ScopeSim detector images.
+# All relative paths are resolved from this YAML file.
+# Start with preview; --full uses the requested ScopeSim nplanes/magnitudes.
+# heeps.nframes: null generates only the frames required by ScopeSim.
+# Set an integer to request more PSF frames in full mode (calibrator uses midpoint).
+# For phase-only operation set heeps.amplitude_files: [].
+# Update pupil/mask/phase/amplitude paths for another machine.
+name: Q1_L_LM6c
+output_dir: ../outputs
+run_mode: preview
+heeps:
+  pupil_file: ../inputs/calibration/pupil/ELT_fullM1_feb2025_noseg.fits
+  mask_file: ../inputs/calibration/mask/ls_SPM_LM6c.fits
+  phase_files:
+  - path: ../inputs/wavefront/cube_Q1_3600_100ms_L.fits
+    global_start: 0
+  phase_unit: m
+  amplitude_files:
+  - path: ../inputs/wavefront/L_rep_1.fits
+    global_start: 0
+  pure: false
+  band: L
+  mask_name: LM6c
+  # Select spectrum and PSF sampling from the chosen band below.
+  # Non-L bands are monochromatic until their bandwidth/samples are configured.
+  spectrum: auto
+  band_specs:
+    L:
+      lambda_center_m: 3.81e-06
+      pixel_scale_mas: 5.47
+      frac_bw: 0.182
+      nlam: 5
+    M:
+      lambda_center_m: 4.79e-06
+      pixel_scale_mas: 5.47
+      frac_bw: 0.0
+      nlam: 1
+    N1:
+      lambda_center_m: 8.7e-06
+      pixel_scale_mas: 6.79
+      frac_bw: 0.0
+      nlam: 1
+    N2:
+      lambda_center_m: 1.133e-05
+      pixel_scale_mas: 6.79
+      frac_bw: 0.0
+      nlam: 1
+  frame_start: 0
+  nframes: null
+  cadence_s: 0.1
+  pixel_scale_mas: auto
+  hfov_arcsec: 1.1
+  ngrid: 1024
+  chunk_size: 100
+  cpu_count: 1
+scopesim:
+  # Download destination AND lookup directory, relative to this YAML.
+  # Resolves to sim_heeps_pipe/inst_pkgs; existing packages are reused.
+  package_dir: ../inst_pkgs
+  download_missing_packages: true
+  package_release: stable
+  source_kind: star
+  mags:
+  - 7.0
+  make_calibrator: true
+  nplanes: 10
+  average_group: 1
+  dit: 0.1
+  ndit: 1
+  mode: img_lm
+  filter_name: Lp
+  cold_stop_transmission: 0.07511
+  flux_scale: 1.0
+  seed: 20261021
+  companion_mag: null
+  companion_separation_arcsec: 0.07
+  companion_pa_deg: -113.0
+  nan_policy: omit
+  remainder_policy: error
+  detector_readout_mode: null
+  exposure_output_mode: average
+  show_effects: true
+  effects:
+    psf: false
+    shot_noise: true
+    readout_noise: true
+    dark_current: true
+    detector_linearity: true
+    ipc: true
+    cold_stop: true
+    filter_wheel: true
+    nd_filter_wheel: true
+    skycalc_atmosphere: true
+    telescope_reflection: true
+    common_fore_optics: true
+    img_lm_optics: true
+    quantum_efficiency: true
+    reference_pixel_mask: true
+    ad_conversion: true
+    auto_exposure: true
+    exposure_integration: true
+    exposure_output: true
+    detector_readout_parameters: true

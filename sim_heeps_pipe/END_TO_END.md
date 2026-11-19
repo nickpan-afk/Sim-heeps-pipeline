@@ -16,8 +16,8 @@ python sim_heeps_pipe/simulation_e2e.py --config sim_heeps_pipe/configs/simulati
 python sim_heeps_pipe/simulation_e2e.py --config sim_heeps_pipe/configs/simulation_l6.yaml --full
 ```
 
-Edit **`configs/simulation_l6.yaml`** for the combined workflow. The individual
-HEEPS and ScopeSim YAML files are only needed when running those stages separately.
+Edit **`configs/simulation_l6.yaml`** for combined or separate execution.
+No separate HEEPS/ScopeSim YAML is needed; the obsolete HEEPS-only template was removed.
 The combined example preserves phase + amplitude, five wavelengths, the Lp filter,
 magnitude 7, the configured optical/noise effects, and one science/calibrator pair.
 It sets an explicit noise seed and automatically downloads missing instrument
@@ -38,12 +38,42 @@ without creating outputs or downloading anything. Instrument construction, effec
 names, and actual PSF pixels are checked during execution. Missing package directories
 are listed when downloads are enabled; otherwise they cause an error.
 
+## Separate stages, same configuration
+
+From `sim_heeps_pipe/`:
+
+```sh
+python heeps_e2e.py --config configs/simulation_l6.yaml --full
+# Set scopesim.input_cube in YAML to the PSF_CUBE path printed by HEEPS.
+# Alternatively, pass --input to override it for this command:
+python scopesim_e2e_Lband.py --config configs/simulation_l6.yaml --full \
+  --input /absolute/path/to/full.fits
+```
+
+Both stages honor the top-level `run_mode`; `--preview`/`--full` overrides it for
+that invocation. Use the same mode in both commands. `--dry-run` is available on
+both. HEEPS uses the shared ScopeSim frame requirements even when run alone;
+ScopeSim uses `scopesim.input_cube` (relative to the YAML) or a CLI `--input`
+override (relative to the current directory), derives sampling from that FITS and
+does not open original HEEPS input files. Leave the YAML field null if you only
+run the combined workflow. Combined and HEEPS-only execution ignore this field. PSFs need `PSCALE` in mas/pixel or consistent angular
+`CDELT1/2` and `CUNIT1/2`, or an explicit `scopesim.pixel_scale_arcsec` fallback
+in arcsec/pixel when those metadata are missing. Valid FITS sampling takes priority.
+DIT/NDIT are still explicit settings, not inferred from input cadence.
+
+Separate runs write under `<output_dir>/heeps/` and
+`<output_dir>/scopesim/<name>/`, respectively. The combined command retains its
+existing output organization and prepares instrument packages before HEEPS.
+Neither separate command automatically discovers or overwrites a combined run.
+
 ## Frame counts and timing
 
 The top-level `run_mode` controls both stages. Stage-specific `run_mode` and output
 paths are managed by the driver and cannot be set inside the sections. ScopeSim's
-`input_cube` and input `pixel_scale_arcsec` are also managed automatically: the
-driver checks the generated FITS sampling and converts HEEPS `PSCALE` from mas.
+`input_cube` is optional for standalone execution and is ignored by the combined
+driver, which always uses its newly generated PSF. The optional `pixel_scale_arcsec` fallback is also ignored by the combined
+driver; sampling is managed automatically: the driver checks the generated FITS sampling and converts
+HEEPS `PSCALE` from mas.
 Detector sampling continues to come from the METIS instrument package.
 
 For a star, the minimum HEEPS frame count is:
@@ -57,7 +87,8 @@ It does not mean propagate the entire available phase cube. For example, 100 sci
 and 100 calibrator images averaging 10 PSFs each require 2,000 HEEPS frames. Set an
 integer `heeps.nframes` to keep extra PSFs in full mode. The count must cover the
 requested groups, with incomplete trailing groups rejected unless explicitly dropped.
-The HEEPS-only entry point retains its original null = all available frames behavior.
+The HEEPS-only entry point uses the same minimum-frame rule when reading this
+shared YAML. Only legacy flat HEEPS configurations retain null = all available frames.
 
 Preview uses one detector plane, the first magnitude, and just enough HEEPS frames
 for the selected grouping and calibrator setting. Full uses all requested detector

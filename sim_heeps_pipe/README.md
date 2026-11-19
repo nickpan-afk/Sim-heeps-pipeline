@@ -1,10 +1,11 @@
-# HEEPS end-to-end PSF production
+# HEEPS and ScopeSim simulation pipeline
 
 For the **combined OPD/amplitude -> HEEPS -> ScopeSim workflow**, use
 [`simulation_e2e.py`](simulation_e2e.py) and
 [`configs/simulation_l6.yaml`](configs/simulation_l6.yaml).
 See [the combined workflow guide](END_TO_END.md) for commands, frame counts,
-outputs, dependencies and validation. The guide below covers HEEPS-only operation.
+outputs, dependencies and validation. All three entry points accept the same
+`configs/simulation_l6.yaml`; the guide below also covers HEEPS-only operation.
 
 To generate an aperture-mask FITS independently, edit
 [`configs/aperture_mask.yaml`](configs/aperture_mask.yaml) and its `hole_centers_file`
@@ -32,7 +33,7 @@ HEEPS checkout is used automatically; elsewhere use installed HEEPS or put the
 HEEPS repository's parent-of-package directory on `PYTHONPATH`, for example:
 
 ```sh
-PYTHONPATH=/path/to/HEEPS python /path/to/heeps_e2e.py --config /path/to/heeps_l6.yaml --preview
+PYTHONPATH=/path/to/HEEPS python /path/to/heeps_e2e.py --config /path/to/simulation_l6.yaml --preview
 ```
 
 HEEPS is imported directly inside `heeps_backend()` when propagation starts.
@@ -47,39 +48,36 @@ From the HEEPS repository root:
 conda activate heeps
 
 # Validate all requested input coverage and display the execution plan; no output.
-python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/heeps_l6.yaml --dry-run
+python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/simulation_l6.yaml --dry-run
 
-# Compute a two-frame broadband preview (the example defaults to preview).
-python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/heeps_l6.yaml
+# Compute the PSF frames required for one science/calibrator preview.
+python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/simulation_l6.yaml
 
-# Process all configured/common input frames, with automatic chunk resume.
-python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/heeps_l6.yaml --full
+# Compute the frames requested by the shared configuration, with chunk resume.
+python sim_heeps_pipe/heeps_e2e.py --config sim_heeps_pipe/configs/simulation_l6.yaml --full
 ```
 
-The single `configs/heeps_l6.yaml` supports both phase-only and phase + amplitude
-runs. It uses paths for the local calibration dataset as examples.
-Set `pupil_file` and `mask_file` once to your actual calibration files. For each new
+The single `configs/simulation_l6.yaml` supports both phase-only and phase + amplitude
+runs, either together or as separate stages. Optical settings live under `heeps:`;
+detector settings live under `scopesim:`. Set `heeps.pupil_file` and `heeps.mask_file`
+once to your actual calibration files. For each new
 observation, update the input paths, OPD unit, cadence, and requested frame range.
 Paths inside YAML are resolved relative to the YAML file, including `~` and defined
 environment variables. CLI path overrides are resolved relative to the shell cwd.
 The script also works when invoked by its absolute path from a different directory.
 
 For a newly received phase cube without amplitude data, replace the
-`amplitude_files` list in that same YAML with:
-
-```yaml
-amplitude_files: []
-```
+`heeps.amplitude_files` list in that same YAML with `[]`.
 
 Then use the same configuration file:
 
 ```sh
 python sim_heeps_pipe/heeps_e2e.py \
-  --config sim_heeps_pipe/configs/heeps_l6.yaml \
+  --config sim_heeps_pipe/configs/simulation_l6.yaml \
   --phase-file /path/to/new_phase.fits --preview
 
 python sim_heeps_pipe/heeps_e2e.py \
-  --config sim_heeps_pipe/configs/heeps_l6.yaml \
+  --config sim_heeps_pipe/configs/simulation_l6.yaml \
   --phase-file /path/to/new_phase.fits --full
 ```
 
@@ -95,6 +93,9 @@ for a subsequent invocation with the same inputs and configuration.
 
 ## Inputs and settings
 
+The optical keys below belong inside the shared YAML's `heeps:` section, except
+for the top-level `run_mode`. YAML snippets below illustrate section contents.
+
 | Setting | Meaning |
 | --- | --- |
 | `pupil_file` | Required finite, non-negative 2D entrance-pupil amplitude image. |
@@ -104,14 +105,14 @@ for a subsequent invocation with the same inputs and configuration.
 | `amplitude_files` | Optional real electric-field amplitude cube, a static 2D map, or a one-frame cube. An intensity map is not automatically square-rooted. `[]` disables amplitude errors. |
 | `global_start` | Global index represented by a source file's first frame; defaults to 0. Applies independently to phase and amplitude sources. |
 | `frame_start` | First global frame to produce, inclusive. |
-| `nframes` | Positive output frame count. `null` infers the common available range. Pure/static-amplitude-only runs require an explicit count. |
+| `nframes` | In the shared YAML, `null` computes the minimum required by ScopeSim. An integer requests extra frames in full mode and must cover the ScopeSim requirements. |
 | `cadence_s` | Required source time sampling; written to FITS WCS. Not inferred from filenames and not a ScopeSim detector exposure setting. |
 | `pixel_scale_mas` | `auto` or omitted selects sampling from the band profile; a number explicitly overrides it, in mas/pixel. |
 | `hfov_arcsec` | Half field of view, not the full width. |
 | `spectrum` | `auto` or omitted selects the band profile; explicit center/bandwidth or wavelengths/weights override it. |
 | `band_specs` | Optional per-band overrides for center wavelength, pixel scale, fractional bandwidth and sample count. |
 | `chunk_size`, `cpu_count` | Memory/process controls; defaults are 100 frames and one worker. |
-| `run_mode` | `preview` or `full`. Preview uses a separate name, at most `preview_frames` frames, and one worker. |
+| `run_mode` | Top-level `preview` or `full`. Preview computes enough PSFs for one detector plane, including its calibrator and averaging group, with one worker. |
 | `pure` | Disable all wavefront errors, compute one static PSF, then repeat it for the explicitly requested frame count. Input error lists must be empty. |
 | `input_root` | Optional HEEPS path-resolution root; defaults to the pupil file's parent. Explicit input/calibration paths do not need the legacy HEEPS directory layout. Keep output outside this input root. |
 
@@ -223,14 +224,51 @@ changes that fingerprint, so the first run uses a new cache directory while old
 outputs remain available. Version metadata may be unavailable for source-installed
 PROPER; change the experiment name after upgrading such an installation.
 
-## Passing the result to the supplied ScopeSim program
+## Run together or separately with the same YAML
 
-Use `PSF_CUBE` as the ScopeSim YAML's `input_cube`, or pass its absolute path to the
-ScopeSim application's existing `--input` option. For L6, `pixel_scale_mas: 5.47`
-corresponds to `pixel_scale_arcsec: 0.00547` in that program. ScopeSim's `dit`, `ndit`,
-throughput parameters, source magnitudes, detector effects, and normalization remain
-explicit downstream settings. They are not inferred from HEEPS cadence or mask flux.
-The two supplied ScopeSim files are reference files and have not been edited or run.
+From `sim_heeps_pipe/`:
+
+```sh
+# Combined run: HEEPS -> ScopeSim (including instrument-package preparation).
+python simulation_e2e.py --config configs/simulation_l6.yaml --full
+
+# Or, step 1: HEEPS only. Record the printed PSF_CUBE path.
+python heeps_e2e.py --config configs/simulation_l6.yaml --full
+
+# Step 2: ScopeSim only, using that cube or another existing compatible PSF cube.
+python scopesim_e2e_Lband.py --config configs/simulation_l6.yaml --full \
+  --input /absolute/path/to/full.fits
+```
+
+Use `--dry-run` to validate a stage without simulation or downloads. Use
+`--preview` instead of `--full` for a small run; otherwise the top-level `run_mode`
+applies. Keep the same mode in both separate invocations so the PSF cube has enough
+frames. ScopeSim only requires the PSF cube and its instrument packages, not the
+original wavefront, pupil or mask FITS files. Set `scopesim.input_cube` in YAML
+to use an existing cube without a CLI path; `--input` overrides that setting.
+YAML paths are relative to the YAML; CLI paths are relative to the current directory.
+Combined and HEEPS-only execution ignore `scopesim.input_cube`. Leave it null
+when you only run the combined workflow. If neither YAML nor CLI specifies a cube,
+standalone ScopeSim reports an error.
+
+ScopeSim reads angular sampling from the PSF's `PSCALE` (mas/pixel) and checks any
+`CDELT1/2` with angular `CUNIT1/2`. Without `PSCALE`, both angular WCS scales are
+required unless `scopesim.pixel_scale_arcsec` supplies a fallback in arcsec/pixel.
+Valid FITS sampling takes priority over this fallback; inconsistent or nonsquare
+scales are rejected. DIT/NDIT remain
+explicit YAML settings; they are not inferred from PSF cadence. Keep
+`scopesim.effects.psf: false` to avoid adding an instrument PSF to the supplied cube.
+
+Separate HEEPS output is placed under `<output_dir>/heeps/`; separate ScopeSim
+runs under `<output_dir>/scopesim/<name>/`. Combined output keeps the existing
+layout described in [END_TO_END.md](END_TO_END.md). Separate and combined runs
+use their own output locations; specify `scopesim.input_cube` or `--input` to reuse
+an existing cube explicitly.
+
+The obsolete HEEPS-only example YAML has been removed. Existing flat stage-only
+YAML files remain readable for compatibility, but the shipped simulation examples
+use the shared format. With a legacy flat HEEPS YAML, `nframes: null` retains its
+original meaning of all commonly available frames.
 
 ## HEEPS scripts used
 

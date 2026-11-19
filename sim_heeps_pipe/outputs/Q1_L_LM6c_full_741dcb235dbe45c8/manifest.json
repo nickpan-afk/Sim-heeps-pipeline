@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "plan": {
+    "run_mode": "full",
+    "run_dir": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8",
+    "heeps": {
+      "experiment": "Q1_L_LM6c",
+      "band": "L",
+      "mask": "LM6c",
+      "pure": false,
+      "frame_range": [
+        0,
+        20
+      ],
+      "chunk_count": 1,
+      "wavelengths_m": [
+        3.46329e-06,
+        3.6366450000000002e-06,
+        3.81e-06,
+        3.983355e-06,
+        4.15671e-06
+      ],
+      "weights": [
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "hfov_arcsec": 1.1,
+      "cpu_count": 1,
+      "fingerprint": "6210fffb45ce910b36bc00eaacf9c1191c98103f58b26e02e4df547b99e23e15",
+      "output": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/.work/heeps",
+      "requested_frames": 20,
+      "effective_frames": 20,
+      "run_mode": "full",
+      "cadence_s": 0.1,
+      "phase_unit": "m",
+      "phase_enabled": true,
+      "amplitude_enabled": true,
+      "pixel_scale_mas": 5.47,
+      "psf_cube": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/psf_cube.fits",
+      "output_shape": [
+        20,
+        403,
+        403
+      ],
+      "cube_data_bytes": 12992720
+    },
+    "scopesim": {
+      "nplanes": 10,
+      "average_group": 1,
+      "make_calibrator": true,
+      "source_kind": "star",
+      "science_local_frames": [
+        0,
+        10
+      ],
+      "calibrator_local_frames": [
+        10,
+        20
+      ],
+      "pixel_scale_arcsec": 0.00547,
+      "missing_instrument_packages": []
+    },
+    "timing": {
+      "heeps_cadence_s": 0.1,
+      "psf_group_duration_s": 0.1,
+      "detector_exposure_s": 0.1
+    },
+    "warnings": [],
+    "method": "Broadband HEEPS PSF, normalized by ScopeSim; absolute photometry from source spectrum/magnitude."
+  },
+  "attempts": [
+    {
+      "started_utc": "2026-10-21T05:43:21.311130+00:00",
+      "status": "complete",
+      "stage": "complete",
+      "scopesim_manifest": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/.work/scopesim_run01/manifest.json",
+      "finished_utc": "2026-10-21T05:43:47.869163+00:00"
+    }
+  ],
+  "products": {
+    "psf_cube": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/psf_cube.fits",
+    "heeps_result": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/.work/heeps/result.json",
+    "scopesim_manifest": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/.work/scopesim_run01/manifest.json",
+    "detector_products": [
+      {
+        "mag": 7.0,
+        "source_kind": "star",
+        "science": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/science_mag7.fits",
+        "calibrator": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/Q1_L_LM6c_full_741dcb235dbe45c8/calibrator_mag7.fits"
+      }
+    ]
+  }
+}
