@@ -108,7 +108,7 @@ python -m pip install \
   "photutils==2.1.0" \
   "astropy==6.1.7" \
   "scikit-image==0.24.0" \
-  "scopesim==0.11.2" \
+  "scopesim==0.10.0" \
   "synphot==1.6.0" \
   "PyYAML==6.0.3" \
   requests beautifulsoup4
