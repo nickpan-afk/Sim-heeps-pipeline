@@ -34,40 +34,14 @@ class Pipeline:
     summary: dict
 
 
-def _path(value, base):
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError('output_dir must be a nonempty path string')
-    path = Path(value).expanduser()
-    return (base / path).resolve()
-
-
 def load_config(path, *, run_mode=None, output_dir=None):
     """Build a read-only joint plan, including checks possible before PSFs exist."""
     path = Path(path).expanduser().resolve()
     data = yaml.load(path.read_text(), Loader=heeps_stage.UniqueKeyLoader)
     if not isinstance(data, dict):
         raise ValueError('The YAML document must be a mapping')
-    allowed = {'name', 'output_dir', 'run_mode', 'heeps', 'scopesim'}
-    if set(data) - allowed:
-        raise ValueError(f'Unknown pipeline keys: {sorted(set(data) - allowed)}')
-    if allowed - set(data):
-        raise ValueError(f'Missing pipeline keys: {sorted(allowed - set(data))}')
-    name = data['name']
-    if not isinstance(name, str) or not name or name in {'.', '..'} or Path(name).name != name:
-        raise ValueError('name must be a nonempty single directory name')
-    mode = run_mode or data['run_mode']
-    if mode not in {'preview', 'full'}:
-        raise ValueError('run_mode must be preview or full')
-    root = Path(output_dir).expanduser().resolve() if output_dir is not None else _path(data['output_dir'], path.parent)
-    for section in ('heeps', 'scopesim'):
-        if not isinstance(data[section], dict):
-            raise ValueError(f'{section} must be a mapping')
-    hdata, sdata = dict(data['heeps']), dict(data['scopesim'])
-    reserved = {'heeps': {'name', 'output_dir', 'run_mode', 'preview_frames'},
-                'scopesim': {'input_cube', 'output_dir', 'run_mode', 'pixel_scale_arcsec'}}
-    for section, values in (('heeps', hdata), ('scopesim', sdata)):
-        if set(values) & reserved[section]:
-            raise ValueError(f'{section}: pipeline manages {sorted(set(values) & reserved[section])}')
+    name, mode, root, hdata, sdata = heeps_stage.combined_config_mappings(
+        data, path.parent, run_mode=run_mode, output_dir=output_dir)
     # Use existing validators without serializing intermediate configuration files.
     hdata.update(name=name, output_dir=str(root / '_planning'), run_mode='full')
     hconfig = heeps_stage.config_from_mapping(hdata, path.parent)
@@ -78,14 +52,7 @@ def load_config(path, *, run_mode=None, output_dir=None):
         raise ValueError('scopesim.effects.psf must be false: HEEPS supplies the PSF')
     if mode == 'preview':
         sconfig = replace(sconfig, nplanes=1, mags=sconfig.mags[:1])
-    minimum = sconfig.nplanes * sconfig.average_group * (2 if sconfig.make_calibrator else 1)
-    # Empty sky still passes through the requested HEEPS stage, but uses only geometry.
-    if sconfig.source_kind == 'empty_sky':
-        minimum = 1
-    if hconfig.nframes is not None and hconfig.nframes < minimum:
-        raise ValueError(f'HEEPS nframes={hconfig.nframes} is insufficient; ScopeSim needs at least {minimum}')
-    if mode == 'preview' or hconfig.nframes is None:
-        hconfig = replace(hconfig, nframes=minimum)
+    hconfig = heeps_stage.apply_frame_requirements(hconfig, scope_stage.config_dict(sconfig), mode)
     _, hsummary = heeps_stage.inspect_inputs(hconfig)
     frames = hsummary['effective_frames']
     groups, remainder = divmod(frames, sconfig.average_group)

@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "run_id": "20261118T204909Z_dd39d462",
+  "config": {
+    "input_cube": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/psf/Q1_L_LM6c_Full_12000frames.fits",
+    "package_dir": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inst_pkgs",
+    "output_dir": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/scopesim/Q1_L_LM6c",
+    "download_missing_packages": true,
+    "package_release": "stable",
+    "source_kind": "star",
+    "mags": [
+      7.0
+    ],
+    "nplanes": 1,
+    "average_group": 1,
+    "dit": 0.1,
+    "ndit": 1,
+    "mode": "img_lm",
+    "filter_name": "Lp",
+    "pixel_scale_arcsec": 0.00547,
+    "cold_stop_transmission": 0.07511,
+    "flux_scale": 1.0,
+    "seed": 20261021,
+    "companion_mag": null,
+    "companion_separation_arcsec": 0.07,
+    "companion_pa_deg": -113.0,
+    "nan_policy": "omit",
+    "remainder_policy": "error",
+    "run_mode": "full",
+    "make_calibrator": true,
+    "detector_readout_mode": null,
+    "exposure_output_mode": "average",
+    "show_effects": true,
+    "effects": {
+      "psf": false,
+      "shot_noise": true,
+      "readout_noise": true,
+      "dark_current": true,
+      "detector_linearity": true,
+      "ipc": true,
+      "cold_stop": true,
+      "filter_wheel": true,
+      "nd_filter_wheel": true,
+      "skycalc_atmosphere": true,
+      "telescope_reflection": true,
+      "common_fore_optics": true,
+      "img_lm_optics": true,
+      "quantum_efficiency": true,
+      "reference_pixel_mask": true,
+      "ad_conversion": true,
+      "auto_exposure": true,
+      "exposure_integration": true,
+      "exposure_output": true,
+      "detector_readout_parameters": true
+    }
+  },
+  "plan": {
+    "missing_instrument_packages": [],
+    "download_missing_packages": true,
+    "package_release": "stable",
+    "shape": [
+      12000,
+      403,
+      403
+    ],
+    "source_kind": "star",
+    "input_usage": "normalized PSF frame groups",
+    "cal_start_group": 6000,
+    "science_frames": [
+      0,
+      1
+    ],
+    "calibrator_frames": [
+      6000,
+      6001
+    ],
+    "range_convention": "zero-based, stop excluded",
+    "trailing_frames_dropped": 0,
+    "output_shape": [
+      1,
+      403,
+      403
+    ],
+    "seconds_per_output_plane": 0.1,
+    "seconds_per_target": 0.1,
+    "note": "DIT/NDIT are explicit; input cadence and wavelength sampling are not inferred."
+  },
+  "products": [
+    {
+      "mag": 7.0,
+      "source_kind": "star",
+      "science": "science_mag7.fits",
+      "calibrator": "calibrator_mag7.fits"
+    }
+  ],
+  "provenance": {
+    "versions": {
+      "python": "3.12.7",
+      "numpy": "2.5.4",
+      "scipy": "1.17.0",
+      "astropy": "8.0.2",
+      "synphot": "1.8.0",
+      "scopesim": "0.12.0",
+      "PyYAML": "6.0.3"
+    },
+    "instrument_packages": {
+      "METIS": {
+        "version_file": "release: stable\ntimestamp: '2026-09-23 11:29:52'\nversion: '2026-09-23'\n",
+        "yaml_sha256": {
+          "Leiden_sky.yaml": "2a54ecefe44fa7c6b68f4c87e28cc36b1448d1a481b31f689e24820c66f31cbb",
+          "METIS.yaml": "ead51b046c5882285d5ec27b57f1a9b9697dc47ca81f3a0b2bea0fe38d58dd0b",
+          "METIS_DET_IFU.yaml": "f1c9b5cba42d4b283b0e7897b6454bcdc2567740adabad92759d309faef0cd53",
+          "METIS_DET_IFU_SMPL.yaml": "0d202770edf309d578b7b041cbadb9ec9d595d1ca9383c53a6e00025d5199b51",
+          "METIS_DET_IMG_LM.yaml": "8b2b164b5e6445d530d6b439f3c3c8407828713a6cc542efa2c2d3cb01c332e9",
+          "METIS_DET_IMG_N_Aquarius.yaml": "5efe8160c4706abeeb7feebd96b0cf5c5067a0b1761c2da9640404acc24650a5",
+          "METIS_DET_IMG_N_GeoSnap.yaml": "97fff5e5086ce7b554a1bb538fdb8cc8469d33deed142c0313078b828f530677",
+          "METIS_IMG_LM.yaml": "e4395b2c6bbb51697e4be4f47f585a352a778bcff51224ef1eab307f88e21641",
+          "METIS_IMG_N.yaml": "4a1feff3a783b66230d13d160dd7fad69420b6a76b2ce3a039c836f0f56c2bcb",
+          "METIS_LMS.yaml": "265fafc316747ba74d4c974216c66175cf1322bf003901b518e2c062e024b714",
+          "METIS_LMS_EXT.yaml": "db83a462d1023408c844f50ded1a10a0229c8dad35e959b09abdee5c357df289",
+          "METIS_LMS_SMPL.yaml": "2cc2aa65b00237148a45c08688d212812ad7354c248e7b3716a4736e3eab0eef",
+          "METIS_LSS.yaml": "8d4d6c9e67d996e61a1c2c3b75e2d7b7946df23da0505a0cca6bd44e3040d747",
+          "METIS_WCU.yaml": "cdf036c4991abf32b3951c80c81d016fe05a943874d82f421fdd17628f60b169",
+          "default.yaml": "fb24f043d3bca25eb89c356ff003065112939d2e48549f62473d64de6f7e9988",
+          "headers/FITS_cfo_keywords.yaml": "be194086d8e4aa8effb46df25ceae8178dbacd0d8d12d70df416a4d85baea5d2",
+          "headers/FITS_common_keywords.yaml": "00560a8a2e09255484e8dbf5ab775b29f55cdbb567800acc20836d7fe95ac087",
+          "headers/FITS_det_ifu_keywords.yaml": "88fffe91b3e80f6b0d50a876bbf00e09604586063052edd9ef038b0374218353",
+          "headers/FITS_det_lm_keywords.yaml": "1045e1c95a54669a59e291649e88ce9c8622f0ed6c4c9cc29f51514c91511cff",
+          "headers/FITS_det_n_keywords.yaml": "1f940cdd61e40e8c7165c6166317041a415fe9d2180bedb6e0acdf6b38779db1",
+          "headers/FITS_img_lm_keywords.yaml": "6a21db2a7205f099f0789103440ad59783aa4cf046bc6c29cbd1747e04632f69",
+          "headers/FITS_img_n_keywords.yaml": "5f959c86e8c0be0c324afc8b65e520840afe8467efbb47f6c69734d2391e2a7b",
+          "headers/FITS_lms_keywords.yaml": "6ddcb1732ed03c3a08e8663d759c3e557c637c5c34733c1ebb72ff306e6ff1b7",
+          "headers/FITS_lss_keywords.yaml": "f2d40cca28d8ade0b6612c97f5292be64e66e94e791980888832a934c6a71c93",
+          "headers/FITS_wcu_keywords.yaml": "e52a0a2b4154d2d263a8b52744a3b342b75d698b165223080d04ed9a0d43287b",
+          "metis_wcu_config.yaml": "be3a917a0ea855d47c305afd8fbe9f09b9a19691a29eb7b36281c2a9bed5870c",
+          "version.yaml": "9caa8af269aabcae09d7ef42a38bdcd375577e1041cbceebd47ee1657743e56b"
+        }
+      },
+      "ELT": {
+        "version_file": "release: stable\ntimestamp: '2025-10-26 15:35:24'\nversion: '2025-10-26'\n",
+        "yaml_sha256": {
+          "ELT.yaml": "406e391de2e70f9f2e5b479fd4b3d0a26e8096ee9258b82aca38829971baa0e3",
+          "FITS_telescope_keywords.yaml": "52b3c8e65149a3548521625270f041851c499bcbc47724cee5969a492879a4d2",
+          "version.yaml": "56c978e5ab357e858a914638b9af0a46958798b0e99b6394829e678c55ef3b99"
+        }
+      },
+      "Armazones": {
+        "version_file": "release: stable\ntimestamp: '2023-07-11 10:03:42'\nversion: '2023-07-11'\n",
+        "yaml_sha256": {
+          "Armazones.yaml": "c5488106a262527b6f42961bd2a2c7ca3f8b6dfec8b364de65fca4d42929e097",
+          "version.yaml": "8282e1133a6e08285427c88a0b9d1b0bbd4367695add54b37ff8707a8ab5a64d"
+        }
+      }
+    },
+    "input": {
+      "path": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/psf/Q1_L_LM6c_Full_12000frames.fits",
+      "size": 7795635840,
+      "mtime_ns": 1781292131031824996
+    },
+    "script_sha256": "34e29b6ea8138beb7a53d6052e646f2ed016b524e991f526a140053fc1a3a643",
+    "seed_scheme": "SeedSequence(root_seed, readout_id, effect_index); roid if supported"
+  },
+  "configuration_source": {
+    "path": "/Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/configs/simulation_l6.yaml",
+    "sha256": "26b9904823b2ecaa51c703a2d575936562351eb05ad180bdb317b39902ca7e05"
+  },
+  "effective_effects": [
+    {
+      "name": "skycalc_atmosphere",
+      "class": "SkycalcTERCurve",
+      "include": true
+    },
+    {
+      "name": "telescope_reflection",
+      "class": "SurfaceList",
+      "include": true
+    },
+    {
+      "name": "telescope_fits_keywords",
+      "class": "ExtraFitsKeywords",
+      "include": true
+    },
+    {
+      "name": "common_fore_optics",
+      "class": "SurfaceList",
+      "include": true
+    },
+    {
+      "name": "adc_wheel : [const_90]",
+      "class": "ADCWheel",
+      "include": true
+    },
+    {
+      "name": "slit_wheel : [False]",
+      "class": "SlitWheel",
+      "include": true
+    },
+    {
+      "name": "cold_stop",
+      "class": "PupilTransmission",
+      "include": true
+    },
+    {
+      "name": "common_fits_keywords",
+      "class": "ExtraFitsKeywords",
+      "include": true
+    },
+    {
+      "name": "cfo_fits_keywords",
+      "class": "ExtraFitsKeywords",
+      "include": true
+    },
+    {
+      "name": "img_lm_optics",
+      "class": "SurfaceList",
+      "include": true
+    },
+    {
+      "name": "filter_wheel : [Lp]",
+      "class": "FilterWheel",
+      "include": true
+    },
+    {
+      "name": "nd_filter_wheel : [open]",
+      "class": "FilterWheel",
+      "include": true
+    },
+    {
+      "name": "psf",
+      "class": "FieldConstantPSF",
+      "include": true
+    },
+    {
+      "name": "img_lm_fits_keywords",
+      "class": "ExtraFitsKeywords",
+      "include": true
+    },
+    {
+      "name": "illumination",
+      "class": "Illumination",
+      "include": true
+    },
+    {
+      "name": "detector_array",
+      "class": "DetectorList",
+      "include": true
+    },
+    {
+      "name": "detector_readout_parameters",
+      "class": "DetectorModePropertiesSetter",
+      "include": true
+    },
+    {
+      "name": "quantum_efficiency",
+      "class": "QuantumEfficiencyCurve",
+      "include": true
+    },
+    {
+      "name": "auto_exposure",
+      "class": "AutoExposure",
+      "include": true
+    },
+    {
+      "name": "reference_pixel_mask",
+      "class": "ReferencePixelBorder",
+      "include": true
+    },
+    {
+      "name": "exposure_integration",
+      "class": "ExposureIntegration",
+      "include": true
+    },
+    {
+      "name": "prnu",
+      "class": "PixelResponseNonUniformity",
+      "include": true
+    },
+    {
+      "name": "dark_current",
+      "class": "DarkCurrent",
+      "include": true
+    },
+    {
+      "name": "shot_noise",
+      "class": "ShotNoise",
+      "include": true
+    },
+    {
+      "name": "detector_linearity",
+      "class": "LinearityCurve",
+      "include": true
+    },
+    {
+      "name": "ipc",
+      "class": "InterPixelCapacitance",
+      "include": true
+    },
+    {
+      "name": "readout_noise",
+      "class": "BasicReadoutNoise",
+      "include": true
+    },
+    {
+      "name": "exposure_output : [average]",
+      "class": "ExposureOutput",
+      "include": true
+    },
+    {
+      "name": "ad_conversion",
+      "class": "ADConversion",
+      "include": true
+    },
+    {
+      "name": "det_lm_fits_keywords",
+      "class": "ExtraFitsKeywords",
+      "include": true
+    }
+  ]
+}

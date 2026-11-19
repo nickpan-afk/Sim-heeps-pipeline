@@ -1,0 +1,49 @@
+input_cube: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inputs/psf/Q1_L_LM6c_Full_12000frames.fits
+package_dir: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/inst_pkgs
+output_dir: /Users/nickpan/HEEPS/HEEPS/sim_heeps_pipe/outputs/scopesim/Q1_L_LM6c
+download_missing_packages: true
+package_release: stable
+source_kind: star
+mags:
+- 7.0
+nplanes: 1
+average_group: 1
+dit: 0.1
+ndit: 1
+mode: img_lm
+filter_name: Lp
+pixel_scale_arcsec: 0.00547
+cold_stop_transmission: 0.07511
+flux_scale: 1.0
+seed: 20261021
+companion_mag: null
+companion_separation_arcsec: 0.07
+companion_pa_deg: -113.0
+nan_policy: omit
+remainder_policy: error
+run_mode: full
+make_calibrator: true
+detector_readout_mode: null
+exposure_output_mode: average
+show_effects: true
+effects:
+  psf: false
+  shot_noise: true
+  readout_noise: true
+  dark_current: true
+  detector_linearity: true
+  ipc: true
+  cold_stop: true
+  filter_wheel: true
+  nd_filter_wheel: true
+  skycalc_atmosphere: true
+  telescope_reflection: true
+  common_fore_optics: true
+  img_lm_optics: true
+  quantum_efficiency: true
+  reference_pixel_mask: true
+  ad_conversion: true
+  auto_exposure: true
+  exposure_integration: true
+  exposure_output: true
+  detector_readout_parameters: true
